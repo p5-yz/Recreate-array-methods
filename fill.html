@@ -1,0 +1,364 @@
+<script src="../tinytest.js"></script>
+<script>
+    
+// TODO: change code to handle undefined values.
+// TODO: change code to handle null
+// TODO: check each parameter in the arguments object.
+// TODO: change code to push non undefined parameters into _arguments object.
+// TODO: if `this` object is a primitive return type.
+// TODO: if null or undefined will not convert to object.
+// TODO: go back to slice function and test how code deals with undefined and null
+// fill.call([1,3,4,5,6,7,8],false,true, null);
+
+// (7) [1, false, false, false, false, false, false]
+
+
+// [].fill.call([1,3,4,5,6,7,8],false,true, null);
+
+// (7) [1, 3, 4, 5, 6, 7, 8]
+/////////////////////////////////////////////////////////////////////////
+// fill([1,3,4,5,6,7,8],false,true, undefined);
+
+// (7) [1, 3, 4, 5, 6, 7, 8]
+
+// [1,3,4,5,6,7,8].fill(false,true, undefined);
+
+// (7) [1, false, false, false, false, false, false]
+
+
+// function fill (arr, value, begin, end ){
+//     var index, array, length, _arguments = [];
+//     var _value;  
+//     var _begin; 
+//     var _end; 
+//     if (this.toString() !== '[object Window]') {
+//         _value = arguments[0] != undefined  ? arguments[0] :undefined;  
+//         _begin = arguments[1]  != undefined  ? arguments[1] :undefined; 
+//         _end = arguments[2]  != undefined  ? arguments[2] : this.length; 
+//         _arguments.push(this);
+//         array = this;
+//     } else {
+//         _value = arguments[1] != undefined  ? arguments[1] :undefined;  
+//         _begin = arguments[2]  != undefined  ? arguments[2] :undefined; 
+//         _end = arguments[3]  != undefined  ? arguments[3] :arr.length; 
+//         _arguments.push(arr);
+//         array = (Array.isArray(arr) ? arr: []);
+//     }
+    
+//     if (_value != undefined ){
+//         _arguments.push(_value);
+//     }
+   
+//     if(_begin != undefined ){
+//       _arguments.push(_begin);
+//     } 
+
+//     if (_end != undefined ){
+//       _arguments.push(_end);
+//     } 
+
+//     if (_arguments.length < 4){
+//         // Start search at index 0 if no 3rd argument
+//         length = array.length;    
+//     } else {
+//         if (Number.isNaN (_end)){
+//           length = 0;
+//         } else {  
+//           length = isNaN(_end) ? array.length :  Number(_end);
+//         }
+
+//         if (length < 0)  {
+//           length = length + array.length < 0 ? array.length : length + array.length;
+//         } else {
+//           length = length - array.length < 0 ? length : array.length;
+//         } 
+//     }
+//     index = isNaN(_begin) ? 0 : Number(_begin);
+
+//     if (index < 0)  {
+//       index = index + length < 0 ? 0 : index + length;
+//     } else {
+//       index = index - length < 0 ?  index : length;
+//     } 
+    
+//     // Define new_array's exact size (with holes) needed to store values.
+//     //var new_array = Array(length - index);
+//     //array = arr;
+//     for (var i = index; i < length; i++){ 
+//         array[i] = _value;
+//     }
+//     return array;
+// }
+function fill (arr, value, begin, end ){
+    'use strict'
+    var index, array, length, _arguments = [];
+    var _value;  
+    var _begin; 
+    var _end; 
+
+    if ( Object.is(this, undefined) && !Array.isArray(arr) /* || Object.is(arr, undefined) */ ) {
+      throw new TypeError('this is null or not defined');
+    } else if (typeof this === 'string' && this.trim().length > 0) {
+        throw new TypeError('Cannot assign to read only property \'0\' of object');
+    } 
+
+    if (Array.isArray(this) || typeof this === 'object') {
+      array = Object.valueOf.call(this); 
+      _value = arguments[0]; 
+      _begin = arguments[1] >> 0; 
+      _end = (arguments[2]  === undefined)  ?  array.length : arguments[2] >> 0 ;  
+    } else {
+      
+      if (typeof this === 'number' || typeof this === 'string' ||
+        typeof this === 'boolean' || typeof this === 'function'){
+       return new Object(this);
+      } 
+
+      array = Object.valueOf.call(arr);
+      _value = value;  
+      _begin = begin >> 0; 
+      _end = (end  === undefined)  ? array.length : end >> 0 ;  
+    }
+
+    _arguments.push(array);
+    _arguments.push(_value);
+    _arguments.push(_begin);
+
+    if (!isNaN(_end)){
+      _arguments.push(_end);
+    }  
+  if (_arguments.length < 4){
+    // Start search at index 0 if no 3rd argument
+    length = array.length;    
+  } else {
+    if (Number.isNaN (_end)){
+      length = 0;
+    } else {  
+      length = isNaN(_end) ? array.length :  Number(_end);
+    }
+
+    if (length < 0)  {
+      length = length + array.length < 0 ? 0 : length + array.length;
+    } else { 
+      length = length - array.length < 0 ? length : array.length;
+    } 
+  }
+  
+  index = isNaN(_begin) ? 0 : Number(_begin);
+
+  if (index < 0)  {
+    index = index + array.length < 0 ? 0 : index + array.length;
+  } else {
+    index = index - array.length < 0 ?  index : array.length;
+  } 
+
+  // Define new_array's exact size (with holes) needed to store values.
+  //var new_array = Array(length - index);
+  //array = arr;
+  for (var i = index; i < length; i++){ 
+    array[i] = _value;
+  }
+  return array;
+}
+
+
+// Function signature:
+//   fill(arr, begin [, end])
+
+// Return value:
+//  A new array containing the extracted elements.
+//
+// Description:
+
+// Edge cases:
+
+tests({
+    'If \'array\' included but \'value\' \'begin\' and \'end\' ommited return array.length elements initialised to undefined.':function(){
+      // e.g,
+      //fill([1,2,3,4,5]) ===> [undefined, undefined, undefined, undefined, undefined]
+      var array = fill([1,2,3,4,5]);
+      eq(JSON.stringify(array), JSON.stringify([undefined, undefined, undefined, undefined, undefined]));
+    },
+    ///
+    'If \'array\' included and \'begin\' is undefined return array.length elements initialsed to undefined': function(){
+        //e.g,
+      //  fill([1,2,3,4,5], undefined) ===> [1,2,3,4,5]
+      var array = fill([1,2,3,4,5], undefined);
+      eq(JSON.stringify(array), JSON.stringify([undefined, undefined, undefined, undefined, undefined]));
+    },
+    ///
+    'If \'value\' is -2, return array.length elements initialsed to -2.':function(){
+    //e.g, 
+    //  fill ([1,2,3,4,5], -2) ===> [-2,-2,-2,-2,-2]
+      var array = fill([1,2,3,4,5], -2);
+      eq(JSON.stringify(array), JSON.stringify([-2,-2,-2,-2,-2]));
+    },
+   
+    'If \'value\' is a 2 and \'begin\' is 4, insert value into the last element of the array.': function(){
+    //e.g,
+    //fill ([1,2,3,4,5], 2, 4) ===>[1, 2, 3, 4, 2]
+      var array = fill([1,2,3,4,5], 2, 4);
+      eq(JSON.stringify(array), JSON.stringify([1, 2, 3, 4, 2]))
+    },
+    'If \'value\' is 2 and \'begin\' is -2 (array.length - 2 = 3), insert 2 into the last 2 elements of the array. ': function(){
+    // e.g, 
+    //  fill ([1,2,3,4,5], 2, -2 ) ===> [1, 2, 3, 2, 2]
+      var array = fill([1,2,3,4,5], 2, -2);
+      eq(JSON.stringify(array), JSON.stringify([1, 2, 3, 2, 2]))
+    },
+    ' If \'value\' is 1 and begin is 20 (or greater than array length), return unchanged array.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5,6], 1, 20) ===> [1, 2, 3, 4, 5, 6]
+      var array = fill([1,2,3,4,5,6], 1, 20);
+      eq(JSON.stringify(array), JSON.stringify([1, 2, 3, 4, 5, 6]))
+    },
+    'If \'value\' is false, return array with array.length ([1,2,3,4,5] ===> length is 5) elements initialised to false':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], false) ===> [false, false, false, false, false]
+      var array = fill([1,2,3,4,5], false);
+      eq(JSON.stringify(array), JSON.stringify([false, false, false, false, false]))
+    },
+    
+    'If \'value\' is false (or 0) and \'begin\' is false (or 0) return array with elements initialised to false. ':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], false, false) ===> [false, false, false, false, false]
+      var array = fill([1,2,3,4,5], false, false);
+      eq(JSON.stringify(array), JSON.stringify([false, false, false, false, false]))
+    },
+    'If \'value\' is false (or 0) and \'begin\' is true (or 1) return array with elements initialised to false excluding first element which is initialised to 1. ':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], false, true) ===>[1, false, false, false, false]
+      var array = fill([1,2,3,4,5], false, true);
+      eq(JSON.stringify(array), JSON.stringify([1, false, false, false, false]))
+    },
+    'If \'value\' is false and \'begin\' is NaN, return array with elements initialised to false.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], false, NaN) ===> [false, false, false, false, false]
+      var array = fill([1,2,3,4,5], false, NaN);
+      eq(JSON.stringify(array), JSON.stringify([false, false, false, false, false]))
+    },
+    'If \'value\' is false and \'begin\' is undefined,, return array with elements initialised to false.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], false, undefined) ===> [false, false, false, false, false]
+      var array = fill([1,2,3,4,5], false, undefined);
+      eq(JSON.stringify(array), JSON.stringify([false, false, false, false, false]))
+    },
+    
+    ' If \'value\' is true and \'begin\' true, return array initialised to true excluding the first element which is 1.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], true, true) ===>[1, true, true, true, true]
+      var array = fill([1,2,3,4,5], true, true);
+      eq(JSON.stringify(array), JSON.stringify([1, true, true, true, true]));
+    },
+    'If \'value\' is true and \'begin\' is NaN, return array initialised to boolean true.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], true, NaN) ===>[true, true, true, true, true]
+      var array = fill([1,2,3,4,5], true, NaN);
+      eq(JSON.stringify(array), JSON.stringify([true, true, true, true, true]));
+    },
+    'If \'value\' is true and \'begin\' is undefined, return array initialised to boolean true.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], true, undefined) ===>[true, true, true, true, true]
+      var array = fill([1,2,3,4,5], true, undefined);
+      eq(JSON.stringify(array), JSON.stringify([true, true, true, true, true]))
+    },
+    'If \'value\' is NaN and \'begin\' is false return array initialised to NaN.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], NaN, false) ===> [NaN, NaN, NaN, NaN, NaN]
+      var array = fill([1,2,3,4,5], NaN, false);
+      eq(JSON.stringify(array), JSON.stringify([NaN, NaN, NaN, NaN, NaN]));
+    },
+    ' If \'value\' is NaN and \'end\' true, return array initialised to NaN exclude the first element which is initialised to 1.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], NaN, true) ===>[ 1, NaN, NaN, NaN, NaN ]
+      var array = fill([1,2,3,4,5], NaN, true);
+      eq(JSON.stringify(array), JSON.stringify([ 1, NaN, NaN, NaN, NaN ]));
+    },
+    'If \'value\' is NaN and \'begin\' is NaN, return an array initialised to NaN.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], NaN, NaN) ===>[ NaN, NaN, NaN, NaN, NaN ]
+      var array = fill([1,2,3,4,5], NaN, NaN);
+      eq(JSON.stringify(array), JSON.stringify([ NaN, NaN, NaN, NaN, NaN ]));
+    },
+    'If \'value\' is NaN and \'begin\' is undefined, return array initialised to NaN.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], NaN, undefined) ===> [NaN, NaN, NaN, NaN, NaN]
+      var array = fill([1,2,3,4,5], NaN, undefined);
+      eq(JSON.stringify(array), JSON.stringify([NaN, NaN, NaN, NaN, NaN]));
+    },
+    'If \'value\' is undefined and \'begin\' is false return array initialised to undefined.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], undefined, false) ===> [undefined, undefined, undefined, undefined, undefined]
+      var array = fill([1,2,3,4,5], undefined, false);
+      eq(JSON.stringify(array), JSON.stringify([undefined, undefined, undefined, undefined, undefined]));
+    },
+    ' If \'value\' is undefined and \'begin\' true, return array initialised to undefined excluding the first element which is 1.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], undefined, true) ===> [1, undefined, undefined, undefined, undefined]
+      var array = fill([1,2,3,4,5], undefined, true);
+      eq(JSON.stringify(array), JSON.stringify([1, undefined, undefined, undefined, undefined]));
+    },
+    'If \'value\' is undefined and \'begin\' is NaN, return an array initialised to undefined.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], undefined, NaN) ===> [undefined, undefined, undefined, undefined, undefined]
+      var array = fill([1,2,3,4,5], undefined, NaN);
+      eq(JSON.stringify(array), JSON.stringify([undefined, undefined, undefined, undefined, undefined]));
+    },
+    'If \'value\' is undefined and \'begin\' is undefined, return array initialised to undefined.':function(){
+    //e.g,
+    //  fill([1,2,3,4,5], undefined, undefined) ===> [undefined, undefined, undefined, undefined, undefined],
+      var array = fill([1,2,3,4,5], undefined, undefined);
+      eq(JSON.stringify(array), JSON.stringify([undefined, undefined, undefined, undefined, undefined]));
+    },
+    'If value, begin and end parameters uninitialised, return an array initialsed to undefined.':function(){
+    //e.g, 
+    //var array = [1,2,3]
+    //     fill(array) ==> [1,2,3] === [undefined, undefined, undefined]
+      var array = fill([1,2,3]);
+      eq(array[0], undefined);
+      eq(array[1], undefined);
+      eq(array[2], undefined);
+    },
+    'If called on null or undefined, it should throw a TypeError.': function () {
+      var isTypeError1 = false;
+      var isTypeError2 = false;
+      try {
+        fill(null);
+      } catch (e) {
+        isTypeError1 = e instanceof TypeError;
+      }
+      try {
+        fill(undefined);
+      } catch (e) {
+        isTypeError2 = e instanceof TypeError;
+      }
+      eq(isTypeError1, true);
+      eq(isTypeError2, true);
+    },
+    'If called on a primitive string, it should throw a TypeError.': function () {
+      var isTypeError = false;
+      try {
+        fill('richard');
+      } catch (e) {
+        isTypeError = e instanceof TypeError;
+      }
+      eq(isTypeError, true);
+    },
+    'If called on a primitive number, it should convert that value to an object.': function () {
+      var result = fill.call(1);
+      eq(typeof result, "object");
+      eq(Number.prototype.isPrototypeOf(result), true);
+    },
+    'If called on a boolean, it should convert that value to an object.': function () {
+      var result = fill.call(true);
+      eq(typeof result, "object");
+      eq(Boolean.prototype.isPrototypeOf(result), true);
+    },
+    'If called on a function, return that function.': function () {
+      var result = fill.call(function () {}, 1);
+      eq(typeof result, "function");
+    }
+   
+  });
+
+</script>

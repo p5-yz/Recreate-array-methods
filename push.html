@@ -1,0 +1,385 @@
+<script src="../tinytest.js"></script>
+<script>
+// Prototype implementation
+//
+// function push(array, ...elementN){
+//     // Need to check whether `call` or `apply` method is invoked
+//     if (Array.isArray(this)){
+//         var arr = this;
+//         var length = arr.length;
+//         arr[length] = array;
+//         length++;
+//     } else {
+//         // If standard function call invoked insert elements on the end of array
+//         var arr = array;
+//         var length = arr.length;
+//     }  
+//     for (let element in elementN){
+//         arr[length] = elementN[element];
+//         length++;
+//     }
+//     return arr;      
+// }
+
+// Function signature:
+
+// Parameters:
+
+// Return value:
+
+// Requirements:
+
+// function push(...elementN){
+//     var length = 0;
+    
+//     if (this.toString() === "[object Window]") {    // Note: testing for the windows object might not be the best idea!!
+//         // If standard function invoked i.e push (array, element1[, ...[, elementN]] ) insert elements to the end of array
+//         if(!Array.isArray(elementN[0])){
+//             throw new TypeError("Must be an array.");
+//         }
+//         for (let element = 1; element < elementN.length; element++){         
+//             elementN[0][elementN[0].length] = elementN[element];
+//         } 
+//         return elementN[0].length;
+//     } else {       
+//         if ( Number.isNaN(Number(this.length))){   // If the length property cannot be converted into a number, the index starts at 0.
+//             this.length = 0;
+//         } else {
+//             this.length = Number(this.length) > 0 ? Math.floor(Number(this.length)) : 0;
+//         }
+//         if (!Array.isArray(this) && typeof this === "object"){  // Push elements to object literal  
+//             for (length = 0; length < elementN.length; length++){
+//                 this[this.length] = elementN[length];
+//                 this.length++;
+//             }    
+//         } else {   // Push elements to array literal
+//             for (length = 0; length < elementN.length; length++){
+//                 this[this.length] = elementN[length];
+//             } 
+//         }         
+//     }
+//     return this.length;      
+// }
+
+///////////////////////////////////////////////////////////////////
+
+function push(...elementN){
+    var length = 0;
+    
+    if (this.toString() === "[object Object]" || Array.isArray(this)) {   
+        if ( Number.isNaN(Number(this.length))){   // If the length property cannot be converted into a number, the index starts at 0.
+            this.length = 0;
+        } else {
+            //this.length = Number(this.length) > 0 ? Math.floor(Number(this.length)) : 0;
+            this.length = Number(this.length) > 0 ? this.length >> 0 : 0;
+
+        }
+        if (!Array.isArray(this) && typeof this === "object"){  // Push elements to array-like object.  
+            for (length = 0; length < elementN.length; length++){
+                this[this.length] = elementN[length];
+                this.length++;
+            }    
+        } else {   // Push elements onto array.
+            for (length = 0; length < elementN.length; length++){
+                this[this.length] = elementN[length];
+            } 
+        }  
+        return this.length;      
+    } else {               // If function invoked i.e push (array, element1[, ...[, elementN]] ) insert elements at the end of the array
+        if(!Array.isArray(elementN[0])){
+            throw new TypeError("Must be an array.");
+        }
+        for (let element = 1; element < elementN.length; element++){         
+            elementN[0][elementN[0].length] = elementN[element];
+        } 
+        return elementN[0].length;  
+    }
+}
+
+
+
+tests({
+    'Add a single element to the end of the array and return the length.':function(){
+        var array = [];
+        var singleElement = "single element passed in!";
+        var length = push(array, singleElement);
+        eq(length, 1 );
+        eq(array["0"], "single element passed in!" )
+    },
+    'Add N elements to the end of the array and return the length.':function(){
+        var array = [];
+        var singleElement = "single element passed in!";
+        var anotherElement = [];
+        var yetAnotherElement = {};
+        var oneMoreElement = undefined;
+        var length = push(array, singleElement, anotherElement, yetAnotherElement, oneMoreElement);
+        eq(length, 4 );
+        eq(array.length, 4);
+        eq(JSON.stringify(array), JSON.stringify(["single element passed in!",[],{},undefined]));
+    },
+    'If call method invoked on push function, initialise array with object literal.':function(){
+        var arr = [];
+        var obj = {};
+        var length = push.call(arr, obj);
+
+        eq(length, 1);
+        eq(JSON.stringify(arr), JSON.stringify([{}]));
+    },
+    'If call method invoked on push function, initialise array with N object literals.':function(){
+        var arr = [];
+        var obj0 = {};
+        var obj1 = {};
+        var obj2 = {};
+        var length = push.call(arr, obj0, obj1, obj2);
+        
+        eq(length, 3);
+        eq(arr.length, 3);
+        eq(JSON.stringify(arr), JSON.stringify([{},{},{}]));
+    },
+    'If apply method invoked on push function, initialise array with array parameter.':function(){
+        var arr = [];
+        var obj0 = {};
+        var obj1 = {};
+        var obj2 = {};
+        var length = push.apply(arr, [obj0, obj1, obj2]);
+        
+        eq(length, 3);
+        eq(arr.length, 3);
+        eq(JSON.stringify(arr), JSON.stringify([{},{},{}]));
+    },
+    'Merge two arrays.':function(){
+        var array1 = [1, 2, 3];
+        var array2 = [4, 5, 6];
+        var length = push.apply(array1, array2);
+        eq(array1.length, 6);
+        eq(length, 6);
+    },
+    'Merge an array and an array-like object.':function(){
+        var array1 = [1, 2, 3];
+        var obj1 = {0:4, 1:5, 2:6, length:3};
+        var length = push.apply(array1, obj1);
+        eq(array1.length, 6);
+        eq(length, 6);
+    },
+    'Merge two array-like objects.':function(){
+        var obj1 = {0:1, 1:2, 2:3, length:3};
+        var obj2 = {0:4, 1:5, 2:6, length:3};
+        var length = push.apply(obj1, obj2);
+        eq(obj1.length, 6);
+        eq(length, 6);
+    },
+    'Add a length property to an empty object literal.': function(){
+        var emptyObj = {}
+        var length = push.call(emptyObj);
+        eq(emptyObj.length, 0);
+        eq(length, 0);
+    },
+
+    'If the length property is a number written in string form i.e. length:\"2\", length:\"99\" convert to number.':function(){
+        var objStringLength = {length:"3"}
+        var length = push.call(objStringLength);
+        eq(objStringLength.length, 3);
+        eq(length, 3);
+    },
+    'If the length property is any string  i.e. length:\"dog\", length:\"x\",length:\"red\" replace string with length of zero.':function(){
+        var objStringLength = {length:"this string will be replaced with a length of 0"};
+        var length = push.call(objStringLength);
+        eq(objStringLength.length, 0);
+        eq(length, 0);
+    },
+    'If the objects length property is a decimal point number convert to whole number. ': function(){
+        var decimalPointObject = {length:2.34572};
+        var number = push.call(decimalPointObject);
+        eq(decimalPointObject.length, 2);
+        eq(number,2);
+    },
+    'If the object is initialised with N elements, the objects length will be N.':function(){
+        var arr = {};
+        var numOfElements =  push.call(arr,[],1,undefined,null, "");
+        eq(numOfElements, 5);
+        eq(arr.length, 5);
+        eq(JSON.stringify(arr), JSON.stringify( {0: Array(0), 1: 1, 2: undefined, 3: null, 4: "", length: 5}   ));
+    },
+    'If the length property of the object is a negative number, the length should be set to zero by default.':function(){
+        var arr = {length:-5};
+        var length = push.call(arr);
+        eq(arr.length, 0);
+        eq(length, 0);
+    },
+    'If the length property of the object is a negative number string, the length should be set to zero by default.':function(){
+        var arr = {length:"-5"};
+        var length = push.call(arr);
+        eq(arr.length, 0);
+        eq(length, 0);
+    }
+});
+
+</script>
+
+<!-- Test log/ scratch info.:
+
+p
+
+// Observe `call` and `apply' methods on functions:
+
+function testFunc (thisArg, arg){
+    console.log(this, thisArg, arg);
+}
+undefined
+
+testFunc.call([1], 2);
+Array [ 1 ] 2 undefined                                                     debugger eval code:2:10
+undefined
+
+testFunc.apply([1], 2);
+TypeError: second argument to Function.prototype.apply must be an array debugger eval code:1:10
+
+testFunc.call([1], [2]);
+Array [ 1 ] Array [ 2 ]                                                     undefined debugger eval code:2:10
+undefined
+
+testFunc.apply([1], [2]);
+Array [ 1 ] 2                                                               undefined debugger eval code:2:10
+undefined
+
+​
+
+undefined
+
+testFunc.apply([1], [2], 3);
+
+this: 1 arg: 2 arg0: undefined                                              debugger eval code:2:13
+undefined
+
+testFunc.call([1], [2], 3);
+
+this: 1 arg: 2 arg0: 3                                                      debugger eval code:2:13
+undefined
+
+///Console Test logs: ////////////////////////////////////////////////////////////
+
+var arr = [1,2,3]
+undefined
+
+arr.push.call(4);
+0
+
+arr
+Array(3) [ 1, 2, 3 ]
+
+arr.push.call(4);
+0
+
+var arr0 = [90,91,92]
+undefined
+
+arr.push.call(arr0,93);
+4
+
+arr
+Array(3) [ 1, 2, 3 ]
+
+arr0
+Array(4) [ 90, 91, 92, 93 ]
+
+arr.push.call(arr0,93);
+5
+
+var arr1 = [10,11,12,13]
+undefined
+
+arr.push.apply(arr1,14);
+TypeError: second argument to Function.prototype.apply must be an array debugger eval code:1:10
+
+arr.push.apply(arr1,[14]);
+5
+
+arr1
+Array(5) [ 10, 11, 12, 13, 14 ]
+
+arr.push.call(arr1,[14]);
+6
+
+arr1
+Array(6) [ 10, 11, 12, 13, 14, (1) […] ]
+
+var arr1 = [10,11,12,13]
+undefined
+
+testFunc.bind(arr1, [2]);
+> function testFunc()                                       bind returns function definition
+
+arr1
+Array(4) [ 10, 11, 12, 13 ]
+
+function testFunc (thisArg, ...arg){
+    console.log(this,  typeof thisArg,  ...arg);
+}
+undefined
+testFunc.apply(arr1, [{},5,"a",undefined,null]);
+
+Array(4) [ 1, 2, 3, 4 ] object 5 a undefined null                   debugger eval code:2:13
+undefined
+
+testFunc.call(arr1, [{},5,"a",undefined,null]);
+
+Array(4) [ 1, 2, 3, 4 ] object                                      debugger eval code:2:13
+undefined
+
+arr1
+Array(4) [ 1, 2, 3, 4 ]
+
+[].push.call(arr1, [{},5,"a",undefined,null]);
+5
+
+arr1
+Array(5) [ 1, 2, 3, 4, (5) […] ]
+
+testFunc.apply(arr1, {},5,"a",undefined,null);
+
+Array(4) [ 1, 2, 3, 4 ] undefined                                   debugger eval code:2:13
+undefined
+
+[].push.apply(arr1,{},5,"a",undefined,null);
+4
+
+arr1
+Array(4) [ 1, 2, 3, 4 ]
+
+///////////////////////////////////////////////////////
+
+
+
+var obj = {
+    length: 0,
+
+    addElem: function addElem(elem) {
+        // obj.length is automatically incremented
+        // every time an element is added.
+        push.call(this, elem);
+    }
+};
+
+// Let's add some empty objects just to illustrate.
+obj.addElem({});
+obj.addElem({});
+console.log(obj.length);
+2
+undefined
+
+/////////////////////////////////////////////////////
+
+var arr1 = [1,2,[3,4,[5,6]]]
+undefined
+
+[].push.call(arr1, [{},5,"a",undefined,null]);
+4
+
+var arr1 = [1,2,[3,4,[5,6]]]
+undefined
+
+push.call(arr1, [{},5,"a",undefined,null]);
+(4) [1, 2, Array(3), Array(5)]
+​
+
+​ -->

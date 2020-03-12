@@ -1,0 +1,427 @@
+<script src="../tinytest.js"></script>
+<script>
+//
+// Bizarre behavior of the native slice method and array: 
+// e.g,
+// Predicted output:
+//
+//  [2,3,].slice(0)  ===> [2,3,undefined]
+//
+// Actual output:
+//
+//  [2,3,].slice(0) ===> [2,3].  WHY??
+//
+//
+// Now,
+//
+//  [,,,1,7] ===> [ undefined, undefined, undefined, 1, 7 ]
+//
+// so, 
+//  Predicted output:
+//
+//  Object.keys([,,,1,7]) ===> ["3", "4"]
+//
+//  Actual output:
+//
+//  Object.keys([,,,1,7]) ===> ["3", "4"] (The same, great!)
+//
+// But if,
+//
+//  var array = [,,,1,7] 
+//
+// and we set array to:
+//
+// array[1] = undefined
+//
+// So we have,
+//  
+//  array = [,,,1,7] ===> [ undefined, undefined, undefined, 1, 7 ].  Similar to line 17
+//
+// Predicted output should be (as line 22 and 26) as followed:
+//
+//  Object.keys([,,,1,7]) ===> ["3", "4"] 
+//
+// Yet, Actual output is:
+//
+//  Object.keys([,,,1,7]) ===> ["1", "3", "4"]      
+//
+//  WHY???
+//
+
+function slice (arr, begin, end ){
+    'use strict'
+    var index, length, _arr, new_array, _begin, _end, _arguments = [];
+
+    if (Object.is(this, undefined) && !Array.isArray(arr) ) {
+      throw new TypeError('this is null or not defined');
+    } 
+    
+    if (Array.isArray(this) || typeof this === 'object' || typeof this === 'string'){
+      _arr = Object.valueOf.call(this);
+      _begin = arguments[0] >> 0;
+      _end = ( arguments[1] === undefined) ? _arr.length : arguments[1] >> 0; 
+    } else {
+      if (typeof this === 'number' || 
+          typeof this === 'boolean' || typeof this === 'function'){
+        return new Object(this);
+      } 
+      _arr = Object.valueOf.call(arr); 
+      _begin = begin >> 0;
+      _end = ( end === undefined) ? _arr.length : end >> 0;
+    }
+
+    _arguments.push(_arr);
+    _arguments.push(_begin);
+    if (!isNaN(_end)){
+      _arguments.push(_end);
+    }  
+
+    if (_arguments.length < 3){
+        // Start search at index 0 if no 3rd argument
+        length = _arr.length;    
+    } else {
+      length = Number.isNaN (_end) ? 0 :  Number(_end);
+
+      if (length < 0)  {
+        length = length + _arr.length < 0 ? 0 : length + _arr.length;
+      } else { 
+        length = length - _arr.length < 0 ? length : _arr.length;
+      } 
+    }
+    index = isNaN(_begin) ? 0 : Number(_begin);
+
+    if (index < 0)  {
+      index = index + _arr.length < 0 ? 0 : index + _arr.length;
+    } else {
+      index = index - _arr.length < 0 ?  index : _arr.length;
+    } 
+    
+    // Define new_array's exact size (with holes) needed to store values.
+    new_array = Array(length - index > 0 ? length - index : 0);
+    for (var i = index; i < length; i++){ 
+        if (i in _arr) {
+          new_array[i - index] = _arr[i]
+        }
+    }
+    return new_array;
+}
+
+// Function signature:
+//   slice(arr, begin [, end])
+
+// Return value:
+//  A new array containing the extracted elements.
+//
+// Description:
+
+
+
+//  If 'begin' is ommited return array;
+//  e.g,
+//    slice([1,2,3,4,5]) ===> [1,2,3,4,5]
+//
+//  If 'begin' is undefined start from index 0, extracting full length of array i.e array.length -1;
+//  e.g,
+//    slice([1,2,3,4,5], undefined) ===> [1,2,3,4,5]
+//
+//  If 'begin' is a valid negative, starting from 'begin' extract up to full length of the array i.e array.length - 1;
+//  e.g, 
+//    slice ([1,2,3,4,5], -2) ===> [4,5]
+//
+//  If 'begin' is greater than the length of the array an empty array is returned.
+//  e.g,
+//    slice([1,2,3,4,5], 5) ===> []
+//
+//  If 'end' is a valid index, extract up to but not including 'end'.
+//  e.g,
+//  slice ([1,2,3,4,5], 2, 4) ===> [3,4]
+//
+//  If 'end' valid negative, extract up to but not including 'end';
+//  e.g, 
+//    slice ([1,2,3,4,5], 2, -2 ) ===> [4,5]
+//
+//  If 'end' is greater than the length of the array, extract up to but not including 'end'.
+//  e.g,
+//    slice([1,2,3,4,5,6], 1, 20) ===> [2,3,4,5,6]
+//
+//  If 'begin' is false, return full length of array
+//  e.g,
+//    slice([1,2,3,4,5], false) ===> [1,2,3,4,5]
+//
+//  If 'begin' is true, return full length of the array exclude index 0
+//  e.g,
+//    slice([1,2,3,4,5], true) ===> [2,3,4,5]
+//
+//  If 'begin' is NaN, return full length of array
+//  e.g,
+//    slice([1,2,3,4,5], NaN) ===> [1,2,3,4,5]
+//
+//  If 'begin' is undefined, return full length of array
+//  e.g,
+//    slice([1,2,3,4,5], undefined) ===> [1,2,3,4,5]
+//
+//  It should not mutate the array
+//  e.g, 
+//  var array = [1,2,3,4,5]
+//       slice(array) ==> [1,2,3,4,5] === array
+//
+//  It should return a shallow copy of elements from original array
+//  e.g,
+//
+// It should copy object references into new array
+//  e.g,
+//  If string, numbers or booleans defined in one array it does not affect the other (array).
+//  e.g,
+//    
+
+// Edge cases:
+
+tests({
+    'If \'begin\' is ommited return array':function(){
+      // e.g,
+      //slice([1,2,3,4,5]) ===> [1,2,3,4,5]
+      var array = slice([1,2,3,4,5]);
+      eq(JSON.stringify(array), JSON.stringify([1,2,3,4,5]));
+    },
+    'If \'begin\' is undefined start from index 0, extracting full length of array i.e array.length -1': function(){
+        //e.g,
+      //  slice([1,2,3,4,5], undefined) ===> [1,2,3,4,5]
+      var array = slice([1,2,3,4,5], undefined);
+      eq(JSON.stringify(array), JSON.stringify([1,2,3,4,5]));
+    },
+    'If \'begin\' is a valid negative, starting from \'begin\' extract up to full length of the array i.e array.length - 1':function(){
+    //e.g, 
+    //  slice ([1,2,3,4,5], -2) ===> [4,5]
+      var array = slice([1,2,3,4,5], -2);
+      eq(JSON.stringify(array), JSON.stringify([4,5]));
+    },
+    'If \'begin\' is greater than the length of the array an empty array is returned.':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], 5) ===> []
+      var array = slice([1,2,3,4,5], 5);
+      eq(JSON.stringify(array), JSON.stringify([]));
+    },
+    'If \'end\' is a valid index, extract up to but not including \'end\'': function(){
+    //e.g,
+    //slice ([1,2,3,4,5], 2, 4) ===> [3,4]
+      var array = slice([1,2,3,4,5], 2, 4);
+      eq(JSON.stringify(array), JSON.stringify([3,4]))
+    },
+    'If \'end\' valid negative, extract up to but not including \'end\'': function(){
+    // e.g, 
+    //  slice ([1,2,3,4,5], 2, -2 ) ===> [3]
+      var array = slice([1,2,3,4,5], 2, -2);
+      eq(JSON.stringify(array), JSON.stringify([3]))
+    },
+    ' If \'end\' is greater than the length of the array, extract up to but not including \'end\'.':function(){
+    //e.g,
+    //  slice([1,2,3,4,5,6], 1, 20) ===> [2,3,4,5,6]
+      var array = slice([1,2,3,4,5,6], 1, 20);
+      eq(JSON.stringify(array), JSON.stringify([2,3,4,5,6]))
+    },
+    'If \'begin\' is false, return full length of array':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], false) ===> [1,2,3,4,5]
+      var array = slice([1,2,3,4,5], false);
+      eq(JSON.stringify(array), JSON.stringify([1,2,3,4,5]))
+    },
+    ' If \'begin\' is true, return full length of the array exclude index 0':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], true) ===> [2,3,4,5]
+      var array = slice([1,2,3,4,5], true);
+      eq(JSON.stringify(array), JSON.stringify([2,3,4,5]))
+    },
+    'If \'begin\' is NaN, return full length of array':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], NaN) ===> [1,2,3,4,5]
+      var array = slice([1,2,3,4,5], NaN);
+      eq(JSON.stringify(array), JSON.stringify([1,2,3,4,5]))
+    },
+    'If \'begin\' is false and \'end\' is false return empty array':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], false, false) ===> []
+      var array = slice([1,2,3,4,5], false, false);
+      eq(JSON.stringify(array), JSON.stringify([]))
+    },
+    ' If \'begin\' is false and \'end\' true, return array with index 0':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], false, true) ===> [1]
+      var array = slice([1,2,3,4,5], false, true);
+      eq(JSON.stringify(array), JSON.stringify([1]))
+    },
+    'If \'begin\' is false and \'end\' is NaN, return empty array':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], false, NaN) ===> []
+      var array = slice([1,2,3,4,5], false, NaN);
+      eq(JSON.stringify(array), JSON.stringify([]))
+    },
+    'If \'begin\' is false and \'end\' is undefined, return full length of array':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], false, undefined) ===> [1,2,3,4,5]
+      var array = slice([1,2,3,4,5], false, undefined);
+      eq(JSON.stringify(array), JSON.stringify([1,2,3,4,5]))
+    },
+    'If \'begin\' is true and \'end\' is false return empty array':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], true, false) ===> []
+      var array = slice([1,2,3,4,5], true, false);
+      eq(JSON.stringify(array), JSON.stringify([]));
+    },
+    ' If \'begin\' is true and \'end\' true, return empty array':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], true, true) ===> []
+      var array = slice([1,2,3,4,5], true, true);
+      eq(JSON.stringify(array), JSON.stringify([]));
+    },
+    'If \'begin\' is true and \'end\' is NaN, return empty array':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], true, NaN) ===> []
+      var array = slice([1,2,3,4,5], true, NaN);
+      eq(JSON.stringify(array), JSON.stringify([]));
+    },
+    'If \'begin\' is true and \'end\' is undefined, return length of array excluding index 0':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], true, undefined) ===> [1,2,3,4,5]
+      var array = slice([1,2,3,4,5], true, undefined);
+      eq(JSON.stringify(array), JSON.stringify([2,3,4,5]))
+    },
+    'If \'begin\' is NaN and \'end\' is false return empty array':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], NaN, false) ===> []
+      var array = slice([1,2,3,4,5], NaN, false);
+      eq(JSON.stringify(array), JSON.stringify([]));
+    },
+    ' If \'begin\' is NaN and \'end\' true, return array with index 0':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], NaN, true) ===> [1]
+      var array = slice([1,2,3,4,5], NaN, true);
+      eq(JSON.stringify(array), JSON.stringify([1]));
+    },
+    'If \'begin\' is NaN and \'end\' is NaN, return empty array':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], NaN, NaN) ===> []
+      var array = slice([1,2,3,4,5], NaN, NaN);
+      eq(JSON.stringify(array), JSON.stringify([]));
+    },
+    'If \'begin\' is NaN and \'end\' is undefined, return full length of array.':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], NaN, undefined) ===> [1,2,3,4,5]
+      var array = slice([1,2,3,4,5], NaN, undefined);
+      eq(JSON.stringify(array), JSON.stringify([1,2,3,4,5]));
+    },
+    'If \'begin\' is undefined and \'end\' is false return empty array':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], undefined, false) ===> []
+      var array = slice([1,2,3,4,5], undefined, false);
+      eq(JSON.stringify(array), JSON.stringify([]));
+    },
+    ' If \'begin\' is undefined and \'end\' true, return array with index 0':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], undefined, true) ===> [1]
+      var array = slice([1,2,3,4,5], undefined, true);
+      eq(JSON.stringify(array), JSON.stringify([1]));
+    },
+    'If \'begin\' is undefined and \'end\' is NaN, return empty array':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], undefined, NaN) ===> []
+      var array = slice([1,2,3,4,5], undefined, NaN);
+      eq(JSON.stringify(array), JSON.stringify([]));
+    },
+    'If \'begin\' is undefined and \'end\' is undefined, return full length of array.':function(){
+    //e.g,
+    //  slice([1,2,3,4,5], undefined, undefined) ===> [1,2,3,4,5]
+      var array = slice([1,2,3,4,5], undefined, undefined);
+      eq(JSON.stringify(array), JSON.stringify([1,2,3,4,5]));
+    },
+    ' It should not mutate the array':function(){
+    //e.g, 
+    //var array = [1,2,3]
+    //     slice(array) ==> [1,2,3] === array
+      var array = slice([1,2,3]);
+      eq(array[0], 1);
+      eq(array[1], 2);
+      eq(array[2], 3);
+    },
+    'It should return a shallow copy of elements from original array':function(){
+    //e.g,
+      var watch_and_code = {name:'Richard',course:'watch and code'};
+      var info = ["vehicle", "car", watch_and_code];
+
+      var array = slice(info, 2);
+      array[0].name = 'Gordon';
+      eq(info[2].name ===  array[0].name, true);
+    },
+    'If string, numbers or booleans defined in one array it does not affect the other (array).':function(){
+    //e.g,
+      var string_number_boolean = ["string", 2, true];
+      var array = slice(string_number_boolean);
+
+      array[0] = "anotherstring";
+      array[1] = "10";
+      array[2] = false;
+
+      eq(string_number_boolean[0], "string");
+      eq(string_number_boolean[1], 2);
+      eq(string_number_boolean[2], true);
+    },
+
+    'All holes from \'begin\' to \'end\' indexes should be preserved in the new array.': function() {
+      var returnedArray = slice([, , 1, ,], 2);
+      eq(Object.keys(returnedArray).length, 1);
+          eq(returnedArray.length, 2);
+      }
+  });
+
+</script>
+
+<!-- // Copy test log:
+//
+debugger 
+slice ([1,2,3,4,5], -2)
+(2) [4, 5]
+ slice([1,2,3,4,5,6], 1, 20)
+(5) [2, 3, 4, 5, 6]
+ slice([1,2,3,4,5,6], NaN)
+(6) [1, 2, 3, 4, 5, 6]
+ [1,2,3,4,5,6].slice( false)
+(6) [1, 2, 3, 4, 5, 6]
+ slice([1,2,3,4,5,6], NaN)
+(6) [1, 2, 3, 4, 5, 6]
+ slice([1,2,3,4,5,6], true)
+(5) [empty, 3, 4, 5, 6]
+ [1,2,3,4,5,6].slice( true)
+(5) [2, 3, 4, 5, 6]
+ slice([1,2,3,4,5,6], true)
+(5) [empty, 3, 4, 5, 6]
+ slice([1,2,3,4,5,6], false)
+(6) [1, 2, 3, 4, 5, 6]
+[1,2,3,4,5,6].slice( false)
+(6) [1, 2, 3, 4, 5, 6]
+ [1,2,3,4,5,6].slice( undefined)
+(6) [1, 2, 3, 4, 5, 6]
+ [1,2,3,4,5,6].slice()
+(6) [1, 2, 3, 4, 5, 6]
+ [1,2,3,4,5,6].slice(false, true)
+[1]
+ [1,2,3,4,5,6].slice(true,true )
+[]
+ [1,2,3,4,5,6].slice(true,false )
+[]
+ [1,2,3,4,5,6].slice(false,false )
+[]
+ [1,2,3,4,5,6].slice(false,true )
+[1]
+
+slice([1,2,3,4],true)
+(3) [2, 3, 4]
+slice([1,2,3,4],false)
+(4) [1, 2, 3, 4]
+isNaN(true)
+false
+isNaN(false)
+false
+slice([1,2,3,4],2)
+(2) [3, 4]
+isNaN(3)
+false
+ -->

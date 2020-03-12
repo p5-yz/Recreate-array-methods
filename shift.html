@@ -1,0 +1,111 @@
+<script src="../tinytest.js"></script>
+<script>
+//
+// Description:
+// The shift method removes the last element from an array
+// and returns that value to the caller. shift is intentionally
+// generic; this method can be called or applied on objects
+//               resembling arrays.
+
+// Function signature:
+//
+//  shift (array)
+//
+// Return value:
+//
+//  The removed element from the array
+
+function shift(elementN){
+    'use strict'
+    var length = 0;
+    var element, index;
+    var array;
+
+    if ( Object.is(this, undefined) && !Array.isArray(elementN) && typeof this !== 'number' /*||  Object.is(arr, undefined) */  ) {
+        throw new TypeError('this is null or not defined');
+    } else if (typeof this === 'string' && this.trim().length > 0) {
+        throw new TypeError('Cannot assign to read only property \'0\' of object');
+    } 
+
+    if (Array.isArray(this) || typeof this === 'object'){
+        array = Object.valueOf.call(this);
+    
+    } else {
+        if (typeof this === 'number' || typeof this === 'string' ||
+            typeof this === 'boolean' || typeof this === 'function'){
+            array = Object(this);
+        } else {
+            array = Object.valueOf.call( elementN); 
+        }  
+    }
+
+    if ( Number.isNaN(Number(array.length))){   // If the length property cannot be converted into a number, the index starts at 0.
+        array.length = 0;
+    } else {
+        array.length = Number(array.length) > 0 ? Math.floor(Number(array.length)) : 0;
+    }
+
+    if (array.length > 0){
+        element = array[0] ;
+        delete array[0];
+        for (var i = 0;i < array.length;i++){
+            // if (i+1  in array){
+            //     array[i] = array[i+1];
+            // } else {
+            //     array[i] = array[i+1];
+            //     delete array[i];
+            // } 
+            array[i] = array[i+1];
+            if (!(i+1 in array)){
+                delete array[i];  
+            } 
+        }
+        array.length--;
+    }
+    return element;  
+}
+tests({
+    'If the function is invoked on an empty array, return undefined':function(){
+        var empty = shift([]);
+        eq(empty, undefined);
+    },
+
+    'Remove a single element from the front of the array and return the element.':function(){
+        var array = ["lorry","car","truck"];
+        var element = shift(array);
+        eq(element, "lorry" );
+    },
+    'Add a length property to an empty object literal.': function(){
+        var emptyObj = {}
+        shift.call(emptyObj);
+        eq(emptyObj.length, 0);
+    },
+
+    'If the length property is any string  i.e. length:\"dog\", length:\"x\",length:\"red\" replace string with length of zero.':function(){
+        var objStringLength = {length:"this string will be replaced with 0"};
+        shift.call(objStringLength);
+        eq(objStringLength.length, 0);
+    },
+
+    'If the length property of the object is a negative number, the length should be set to zero by default.':function(){
+        var arr = {length:-5};
+        shift.call(arr);
+        eq(arr.length, 0);
+    },
+    'If the length property of the object is a negative number string, the length should be set to zero by default.':function(){
+        var arr = {length:"-5"};
+        shift.call(arr);
+        eq(arr.length, 0);
+    },
+    'Remove a single element from the front of an array-like object (using the apply method) and return the element.':function(){
+        var obj1 = {0:"car", 1:"lorry", 2:"motorcycle", length:3};
+        var element = shift.apply(obj1);
+        eq(obj1.length, 2);
+        eq(element, "car" );   
+    },
+    'Preserve the holes in an array.': function(){
+        var arrayHoles = [,,2,3,,4,5,,6];
+
+    }
+  });
+</script>

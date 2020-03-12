@@ -1,0 +1,146 @@
+<script src="../tinytest.js"></script>
+<script>
+
+function join (oldArray, separator){
+    var stringSeparator; 
+    var string = "";
+    var array;
+
+    array = oldArray;
+
+    // Convert an array-like object to a real array
+    if (!Boolean (array.substr) && array.length){
+        array = Array.prototype.slice.call(array);
+    }
+    
+    if (!Array.isArray(array) && String(array) === "[object Object]" ){                                 
+        throw new TypeError(array+'.join is not a function');
+    }
+
+    if (arguments.length < 2){
+        stringSeparator = ',';
+    } else {
+        stringSeparator = String(separator);
+    }
+    
+    for (var i = 0;i < array.length; i++ ){
+        if (array[i] == null || array[i] == undefined) {
+            string += "" + stringSeparator;  
+        } else {
+            string += array[i] + stringSeparator ;
+        }
+    }
+    return string.substr(0, string.length - stringSeparator.length);
+}
+
+//
+// Function signature:
+//  var new_array = join(old_array, [separator])
+// Parameters:
+//
+// separator -
+//  Specifies a string to separate each pair of elements of the array.
+//
+// Return value:
+//  A string with all array elements joined.
+//
+//
+// 
+
+
+
+// debugger
+// [{},1,2].join()
+// "[object Object],1,2"
+// debugger
+// join([{},1,2])
+// "[object Object],1,2"
+// debugger
+// [{},1,2].join({})
+// "[object Object][object Object]1[object Object]2"
+// debugger
+// join([{},1,2],{})
+// "[object Object][object Object]1[object Object]2"
+// debugger
+// join([{},1,2],{value:1})
+// "[object Object][object Object]1[object Object]2"
+// debugger
+// [{},1,2].join({value:1})
+// "[object Object][object Object]1[object Object]2"
+// debugger
+// [{},1,2].join([])
+// "[object Object]12"
+// debugger
+// join([{},1,2],[])
+// "[object Object]12"
+
+tests({
+    'It should create a new string.':function(){
+        var newstring;
+       
+        newstring = join([]);
+        eq(typeof newstring === "string", true);
+    },
+    'If element is null, it should return an empty string.':function(){
+        var newstring;
+       
+        newstring = join(["a",null,"b"]);
+        eq(newstring === "a,,b", true);
+    },
+    'If element is undefined, it should return an empty string.':function(){
+        var newstring;
+       
+        newstring = join(["a",undefined,"b"]);
+        eq(newstring === "a,,b", true);
+    }, 
+    'If separator is null, it should return a string with null between elements.':function(){
+        var newstring;
+       
+        newstring = join(["a","b"], null);
+        eq(newstring === "anullb", true);
+    },
+    'If separator is undefined, it should return a string with undefined the betweem elements.':function(){
+        var newstring;
+       
+        newstring = join(["a","b"], undefined);
+        eq(newstring === "aundefinedb", true);
+    }, 
+    'If separator is NaN, it should return a string with NaN between elements.':function(){
+        var newstring;
+       
+        newstring = join(["a","b"], NaN);
+        eq(newstring === "aNaNb", true);
+    },
+   
+    'If separator is true, it should return a string with a true string separator between elements.':function(){
+        var newstring;
+       
+        newstring = join(["a","b"], true);
+        eq(newstring === "atrueb", true);
+    },
+    'If separator is false, it should return a string with a false string separator between elements.':function(){
+        var newstring;
+       
+        newstring = join(["a","b"], false);
+        eq(newstring === "afalseb", true);
+    },
+    'It should join array like objects.':function(){
+        function f(a, b, c) {
+            return join(arguments, '@');    
+        }
+
+        var string = f(1, 'a', true);
+        eq(string === "1@a@true", true);
+    },
+    'If initial parameter not an array, throw TypeError.':function(){
+      var isTypeError = false;
+      try {
+        join('It\'s a Method!');
+      } catch(e) {
+        var isTypeError = (e instanceof TypeError);
+      }
+      eq(isTypeError, true);
+    },
+});
+</script>
+​

@@ -1,0 +1,156 @@
+<script src="../tinytest.js"></script>
+<script>
+// Prototype implementation
+//
+// function concat (object, ...args){
+//     debugger
+//     var LHS = object;   // This variable will hold the concatenated string or array
+
+//     // LHS should be an array or string literal
+//     if (!Array.isArray(LHS)){                                 
+//         throw new SyntaxError('object cannot be numeric literal');
+//     }
+
+//     // If type is an object i.e, [] ( Note: Assume array. )
+//     if  (typeof LHS === 'object'){ 
+//         for (let i = 0; i < args.length; i++){
+//             // If type is an [], then perform array.push(..) operation
+//             if (  typeof args[i] === 'object' && Array.isArray(args[i])){ 
+//                 for (let elem of args[i]){
+//                     LHS.push(elem);
+//                 }
+//             }
+//             // If type is an {}, then perform array.push(..) operation
+//             if (  typeof args[i] === 'object' && !Array.isArray(args[i])){
+//                 LHS.push(args[i]);
+//             }
+//             // If type is string, then perform array.push(..) operation
+//             if (  typeof args[i] === 'string'){
+//                 LHS.push(args[i]);
+//             }
+//             // If type is number, then perform array.push(..) operation
+//             if (  typeof args[i] === 'number'){ 
+//                 LHS.push(args[i]);
+//             }
+//         }  
+//     } 
+//     return LHS;
+// }
+
+//
+// Function signature:
+//  var new_array = concat(old_array, [value1[, value2[, ...[, valueN]]]])
+// Parameters:
+//  Arrays and/or values to concatenate into a new array.
+//
+// Return value:
+//  A new Array instance.
+//
+// Requirements:
+//
+// It should create a new array
+// eg,
+//   concat([]) ==> [] 
+//
+// It should return a shallow copy of the original array
+//  e.g,
+//      var old_array = [1,2]
+//      var new_array = concat(old_array)
+//      is_equal_elements(old_array, new_array)
+//      old_array.push("c")
+//      is_equal_reference(old_array, new_array)
+//
+// It should not recurse into nested arrays.
+//  e.g,
+//      var array = [1,2,[3,4,[5,6],8,9]]
+//      array.flat(0) === array
+//      array.flat(1) !== array
+//      array.flat(2) !== array
+//
+// It should not mutate the 'this' object or any of the arrays
+//  e.g,
+//    var array = [1,2,3]
+//    var new_array = concat(array)
+//    new_array === [1,2,3]
+// Both the original and new array should have access to the same reference
+//  e.g,
+//     var old_array = [1,2,3,"a","b"]
+//     var new_array = concat(old_array)
+//      new_array.push("c")
+//      old_array === new_array
+//
+// It should concatenate values in order by, for each element.
+//  e.g,
+//   concat([2],[1],5) ==> [ 2, 1, 5 ]
+//
+
+
+
+function concat (oldArray, ...valueN){
+    var newArray = oldArray;   // newArray will hold the concatenated array
+
+    // Is oldArray parameter an array?
+    if (!Array.isArray(oldArray) ){                                 
+        throw new SyntaxError('object must be array literal');
+    }
+    for (let i = 0; i < valueN.length; i++){
+        // If type is an [..], then perform array.push(..) operation
+        if ( Array.isArray(valueN[i])){ 
+            for (let element of valueN[i]){
+                newArray.push(element);
+            }
+        } else {
+            newArray.push(valueN[i]);
+        }  
+    }  
+    return newArray;
+}
+
+tests({
+    'It should create a new array':function(){
+        var newArray;
+       
+        newArray = concat([]);
+        eq(Array.isArray(newArray), true);
+    },
+    'It should return a shallow copy of the original array': function(){ 
+        var old_array = [1,2]
+        var new_array = concat(old_array);
+        new_array.push("c");
+
+        eq(old_array[0], 1);
+        eq(old_array[1], 2);
+        eq(old_array[2], "c");
+    },
+    'It should not recurse into nested arrays.':function(){
+        var array = concat([1,2,[3,4,[5,6],8,9]]);
+        var testArray = [1,2,[3,4,[5,6],8,9]];
+
+        eq(JSON.stringify(array.flat(0)) === JSON.stringify(testArray), true);
+        eq(JSON.stringify(array.flat(1)) === JSON.stringify(testArray), false);
+        eq(JSON.stringify(array.flat(2)) === JSON.stringify(testArray), false);
+    },
+    'It should not mutate the \'this\' object or any of the arrays': function(){
+        var arrayNumbers = [1,2,3];
+        var arrayAlphabet = ["a","b","c"];
+        var arrayAlphanumeric = concat(arrayNumbers, arrayAlphabet);
+        eq(JSON.stringify(arrayAlphanumeric), JSON.stringify([1,2,3,"a","b","c"]));
+
+    },
+    'Both the original and new array should have access to the same reference':function(){ 
+        var oldArray = [1,2,3,"a","b"];
+        var newArray = concat(oldArray);
+        newArray.push("c");
+        eq(oldArray, newArray);
+        eq(JSON.stringify(oldArray), JSON.stringify(newArray));
+    },
+    'It should concatenate values in order by, for each element.': function(){
+        var arrayInOrder = concat([2],[1],5,"a");
+        eq(arrayInOrder[0], 2);
+        eq(arrayInOrder[1], 1);
+        eq(arrayInOrder[2], 5);
+        eq(arrayInOrder[3], "a");
+    }
+});
+</script>
+​

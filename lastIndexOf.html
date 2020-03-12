@@ -1,0 +1,91 @@
+<script src="../tinytest.js"></script>
+<script>
+
+function lastIndexOf(arr, searchElement, fromIndex){
+  var index;
+
+  if (arguments.length < 3){
+      // Start search at index 0 if no 3rd argument
+      index = arr.length - 1;
+  } else {
+      index = Number(fromIndex);
+      if (index < 0)  {
+          //index = (-index > arr.length) ? - 1 : index + arr.length;
+          index = ( index + arr.length < 0) ? - 1 : index + arr.length;
+      } 
+  }
+  
+  while (index >= 0){
+    if (Object.is(arr[index], searchElement) || arr[index] === searchElement){
+            if (index in arr ){
+                return index;
+            }         
+    }
+    index--;
+  }
+  return -1;
+ } // end while
+
+tests({
+      'It should return nth index position  if the searchElement is in the array. ':function(){
+        var indexZero = lastIndexOf([1,2,3,4], 1);
+        var indexOne = lastIndexOf([1,2,3,4], 2);
+        var indexTwo = lastIndexOf([1,2,3,4], 3);
+        var indexThree = lastIndexOf([1,2,3,4], 4);
+
+        eq(indexZero, 0);
+        eq(indexOne, 1);
+        eq(indexTwo, 2);
+        eq(indexThree, 3);
+      },
+      'It should return the nth position if fromIndex position is greater than or equal to searchElement index . ':function(){
+        var indexThree = lastIndexOf([1,2,3,4,5], 3 ,-1);
+        var indexTwo = lastIndexOf([1,2,3,4,5], 3, -2);
+        var indexOne = lastIndexOf([1,2,3,4,5], 3, -3);
+        eq(indexThree, 2);
+        eq(indexTwo, 2);
+        eq(indexOne, 2);
+      },
+      'It should return not found if fromIndex position is less than searchElement index . ':function(){
+        var indexZero = lastIndexOf([1,2,3,4,5], 3, -4);
+        var indexOne = lastIndexOf([1,2,3,4,5], 3, -5);
+
+        eq(indexZero, -1);  
+        eq(indexOne, -1 );
+      },
+    'It should return not found if array parameter defined only.':function(){
+         var index = lastIndexOf([1,2,3,4])    
+
+         eq(index, -1);
+    },
+    'It should be strict equal.' : function(){
+       var strictEqual = lastIndexOf(["1"], "1");
+       var notStrictEqual = lastIndexOf(["1"], 1);
+
+       eq(strictEqual, 0);
+       eq(notStrictEqual, -1);
+    },
+      'It should skip holes in array': function() {
+      var array = [,,,];
+      var index = lastIndexOf(array, undefined);
+
+      eq(-1, index);
+    },
+    'It should return not found if array searchElement is not in array.':function(){
+      var notFound = lastIndexOf([1,2,3,4], 10);
+
+      eq(notFound, -1);
+    }, 
+    'It should return the nth index if a positive fromIndex value exceeds maximum array index':function(){
+      var found = lastIndexOf([1,2,3,4], 4, 40);
+
+      eq(found, 3);
+    },
+    'It should return not found if a negative fromIndex value exceeds maximum array index':function(){
+      var notFound = lastIndexOf([1,2,3,4], 4, -40);
+
+      eq(notFound, -1);
+    }
+ });
+
+</script>

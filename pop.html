@@ -1,0 +1,111 @@
+<script src="../tinytest.js"></script>
+<script>
+//
+// Description:
+// The pop method removes the last element from an array
+// and returns that value to the caller. pop is intentionally
+// generic; this method can be called or applied to objects
+//               resembling arrays.
+
+// Function signature:
+//
+//  pop (array)
+//
+// Return value:
+//
+//  The removed element from the array
+
+function pop(elementN){
+    'use strict'
+    var length = 0;
+    var element, index;
+    var array;
+
+    if ( Object.is(this, undefined) && !Array.isArray(elementN) && typeof this !== 'number' /*||  Object.is(arr, undefined) */  ) {
+        throw new TypeError('this is null or not defined');
+    } else if (typeof this === 'string' && this.trim().length > 0) {
+        throw new TypeError('Cannot assign to read only property \'0\' of object');
+    } 
+
+    if (Array.isArray(this) || typeof this === 'object'){
+        array = Object.valueOf.call(this);
+    
+    } else {
+        if (typeof this === 'number' || typeof this === 'string' ||
+            typeof this === 'boolean' || typeof this === 'function'){
+            array = Object(this);
+        } else {
+            array = Object.valueOf.call( elementN); 
+        }  
+    }
+
+    if ( Number.isNaN(Number(array.length))){   // If the length property cannot be converted into a number, the index starts at 0.
+        array.length = 0;
+    } else {
+        array.length = Number(array.length) > 0 ? Math.floor(Number(array.length)) : 0;
+    }
+
+    if (array.length > 0){
+        element = array[array.length-1] ;
+        delete array[array.length-1];
+        for (var i = array.length - 1;i < 0;i++){
+            array[i] = array[i-1];
+            if (!(i in array)){
+                delete array[i-1];
+            }
+
+        }
+        array.length--;
+    }
+    return element;  
+   
+}
+tests({
+    'If the function is invoked on an empty array, return undefined':function(){
+        var empty = pop([]);
+        eq(empty, undefined);
+    },
+
+    'Remove a single element from the end of the array and return the element.':function(){
+        var array = ["lorry","car","truck"];
+        var element = pop(array);
+        eq(element, "truck" );
+    },
+    'Add a length property to an empty object literal with a value of zero.': function(){
+        var emptyObj = {}
+        pop.call(emptyObj);
+        eq(emptyObj.length, 0);
+    },
+
+    'If the length value is any string  i.e. length:\"dog\", length:\"x\",length:\"red\" replace string with length of zero.':function(){
+        var objStringLength = {length:"this string will be replaced with a length of 0"};
+        pop.call(objStringLength);
+        eq(objStringLength.length, 0);
+    },
+   
+    
+    'If the length value of the object is a negative number, the length should be set to zero by default.':function(){
+        var arr = {length:-5};
+        pop.call(arr);
+        eq(arr.length, 0);
+    },
+    'If the length value of the object is a negative number string, the length should be set to zero by default.':function(){
+        var arr = {length:"-5"};
+        pop.call(arr);
+        eq(arr.length, 0);
+    },
+    'Remove a single element from the end of an array-like object (using the apply method) and return the element.':function(){
+        var obj1 = {0:"car", 1:"lorry", 2:"motorcycle", length:3};
+        var element = pop.apply(obj1);
+        eq(obj1.length, 2);
+        eq(element, "motorcycle" );   
+    },
+    'Preserve holes in array': function(){
+        var holesArray = [1,2,undefined,3,4,,,5];
+        var holesTestArray = [1,2,,3,4,,,5];
+        holesArray.forEach(function(element,index){
+            eq(element, holesTestArray[index]);
+        });
+    }
+  });
+</script>

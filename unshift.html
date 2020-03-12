@@ -1,0 +1,293 @@
+<script src="../tinytest.js"></script>
+<script>
+// Function signature:
+
+// Parameters:
+
+// Return value:
+
+// TODO: Incorrect put through de
+// var array = {0:1,1:2,3:"three",length:3};
+//         var singleElement = "single element passed in!";
+// 		debugger
+//         unshift.call(array,[1,2,3]);
+
+function unshift(...elementN){
+    var length;
+    var array;
+    var object;
+    // shift.call({} ,element0, element1, ..., elementN) OR
+    // shift.call([] ,element0, element1, ..., elementN) 
+    //if (this.toString() === "[object Object]" || Array.isArray(this) || Object(this.valueOf())) { 
+    //elementN[0] = Object(elementN[0]);   
+    if (this.toString() !== "[object Window]"){
+   
+    
+        if ( Number.isNaN(Number(this.length))){   // If the length property cannot be converted into a number, the index starts at 0.
+            this.length = 0;
+        } else {
+            this.length = Number(this.length) > 0 ? Math.floor(Number(this.length)) : 0;
+        }
+        // shift object indexes right by elementN.length.
+        for (length = this.length-1 ; length >= 0; length--){ 
+            if (length in this){
+                var element = this[length];
+                delete this[length];
+                this[length + elementN.length] = element;
+            }   
+        }  
+        // shift.call({} ,element0, element1, ..., elementN) 
+        if (!Array.isArray(this) && typeof this === "object"){  // Push elements to array-like object. 
+           
+            // copy elements into object.
+            for (length = 0; length < elementN.length; length++){
+                this[length] = elementN[length];
+                this.length++;
+            }   
+        // shift.call([] ,element0, element1, ..., elementN)  
+        } else {   // copy elements into array.
+            for (length = 0; length < elementN.length; length++){
+                this[length] = elementN[length];
+            } 
+        }  
+        return this.length; 
+        
+        // unshift([],element0, element1, ..., elementN )   
+    } else {               // If function invoked i.e unshift (array, element1[, ...[, elementN]] ) insert elements at the end of the array
+      
+        // Convert array to array-like object.
+        array = elementN[0];
+        object = {};
+
+        for (let element = 0; element < array.length; element++){         
+            object[element] = array[element];
+        } 
+        object["length"] = array.length;
+
+        // shift object indexes right by elementN.length.
+        for (length = object.length-1 ; length >= 0; length--){ 
+            var element = object[length];
+            delete object[length];
+            object[length + elementN.length-1] = element;
+        }  
+         // copy elements into object.
+         for (length = 1; length < elementN.length; length++){
+            object[length-1] = elementN[length];
+            object.length++;
+        }  
+        // convert array-like object back into an array and 
+        // copy elements into initial array parameter.
+        //array.length = 0;
+        for (var i = 0; i < object.length; i++ ) {
+            array[i] =  object[i];
+        } 
+        array.length = object.length;
+        return array.length;
+    }
+}
+
+
+// Note: In 'use strict' mode: If,
+// unshift([], "its a string!!", 2):
+// this = {}, argument0 = [], argument1 = "its a string!!"
+
+// function unshift(elementN){
+//     'use strict';
+//     var length;
+//     var array;
+//     var object;
+//     var thisArg;
+    
+//     thisArg = Object(this);
+//     // shift.call({} ,element0, element1, ..., elementN) OR
+//     // shift.call([] ,element0, element1, ..., elementN) 
+//     if (thisArg === undefined || thisArg === null){
+//         throw new TypeError("undefined and null cannot be converted to object.");
+//     }
+//     if (thisArg.toString() === "[object Object]" || Array.isArray(thisArg) || Object(thisArg.valueOf())) { 
+//         // if (thisArg.toString() === "[object Window]" && thisArg ){
+//         //     throw new TypeError("undefined and null cannot be converted to object.");
+//         // } 
+//         if (Object.prototype.toString.call(thisArg) === "[object String]" && thisArg.length === 0 ){
+//             throw new TypeError("Cannot assign to read only property 'length' of object and null cannot be converted to object.");
+//         }
+
+//         if ( Number.isNaN(Number(thisArg.length))){   // If the length property cannot be converted into a number, the index starts at 0.
+//             thisArg.length = 0;
+//         } else {
+//             thisArg.length = Number(thisArg.length) > 0 ? Math.floor(Number(thisArg.length)) : 0;
+//         }
+//         // shift object indexes right by elementN.length.
+//         for (length = thisArg.length-1 ; length >= 0; length--){ 
+//             var element = thisArg[length];
+//             delete thisArg[length];
+//             thisArg[length + arguments.length] = element;
+
+//         }  
+//         // shift.call({} ,element0, element1, ..., elementN) 
+//         if (!Array.isArray(thisArg) && typeof thisArg === "object"){  // Push elements to array-like object. 
+           
+//             // copy elements into object.
+//             for (var length = 0; length < arguments.length; length++){
+//                 thisArg[length] = arguments[length];
+//                 thisArg.length++;
+//             }   
+//         // shift.call([] ,element0, element1, ..., elementN)  
+//         } else {   // copy elements into array.
+//             for (var length = 0; length < arguments.length; length++){
+//                 thisArg[length] = arguments[length];
+//             } 
+//         }  
+//         return thisArg.length;   
+//         // unshift([],element0, element1, ..., elementN )   
+//     } else {               // If function invoked i.e unshift (array, element1[, ...[, elementN]] ) insert elements at the end of the array
+//         // if(!Array.isArray(elementN[0])){
+//         //     throw new TypeError("Must be an array.");
+//         // }
+//         // Convert array to array-like object.
+//         array = arguments[0];
+//         object = {};
+
+//         for (let element = 0; element < array.length; element++){         
+//             object[element] = array[element];
+//         } 
+//         object["length"] = array.length;
+
+//         // shift object indexes right by elementN.length.
+//         for (length = object.length-1 ; length >= 0; length--){ 
+//             var element = object[length];
+//             delete object[length];
+//             object[length + arguments.length-1] = element;
+//         }  
+//          // copy elements into object.
+//          for (length = 1; length < elementN.length; length++){
+//             object[length-1] = arguments[length];
+//             object.length++;
+//         }  
+//         // convert array-like object back into an array and 
+//         // copy elements into initial array parameter.
+//         array.length = 0;
+//         for (var i = 0; i <  [].slice.call(object).length; i++ ) {
+//             array[i] =  [].slice.call(object)[i];
+//         } 
+//         return array.length;
+//     }
+// }
+
+tests({
+    'Add a single element to the end of the array and return the length.':function(){
+        var array = [];
+        var singleElement = "single element passed in!";
+        var length = unshift(array, singleElement);
+        eq(length, 1 );
+        eq(array["0"], "single element passed in!" )
+    },
+    'Add N elements to the end of the array and return the length.':function(){
+        var array = [];
+        var singleElement = "single element passed in!";
+        var anotherElement = [];
+        var yetAnotherElement = {};
+        var oneMoreElement = undefined;
+        var length = unshift(array, singleElement, anotherElement, yetAnotherElement, oneMoreElement);
+        eq(length, 4 );
+        eq(array.length, 4);
+        eq(JSON.stringify(array), JSON.stringify(["single element passed in!",[],{},undefined]));
+    },
+    'If call method invoked on unshift function, initialise array with object literal.':function(){
+        var arr = [];
+        var obj = {};
+        var length = unshift.call(arr, obj);
+
+        eq(length, 1);
+        eq(JSON.stringify(arr), JSON.stringify([{}]));
+    },
+    'If call method invoked on unshift function, initialise array with N object literals.':function(){
+        var arr = [];
+        var obj0 = {};
+        var obj1 = {};
+        var obj2 = {};
+        var length = unshift.call(arr, obj0, obj1, obj2);
+        
+        eq(length, 3);
+        eq(arr.length, 3);
+        eq(JSON.stringify(arr), JSON.stringify([{},{},{}]));
+    },
+    'If apply method invoked on unshift function, initialise array with array parameter.':function(){
+        var arr = [];
+        var obj0 = {};
+        var obj1 = {};
+        var obj2 = {};
+        var length = unshift.apply(arr, [obj0, obj1, obj2]);
+        
+        eq(length, 3);
+        eq(arr.length, 3);
+        eq(JSON.stringify(arr), JSON.stringify([{},{},{}]));
+    },
+    'Merge two arrays.':function(){
+        var array1 = [1, 2, 3];
+        var array2 = [4, 5, 6];
+        var length = unshift.apply(array1, array2);
+        eq(array1.length, 6);
+        eq(length, 6);
+    },
+    'Merge an array and an array-like object.':function(){
+        var array1 = [1, 2, 3];
+        var obj1 = {0:4, 1:5, 2:6, length:3};
+        var length = unshift.apply(array1, obj1);
+        eq(array1.length, 6);
+        eq(length, 6);
+    },
+    'Merge two array-like objects.':function(){
+        var obj1 = {0:1, 1:2, 2:3, length:3};
+        var obj2 = {0:4, 1:5, 2:6, length:3};
+        var length = unshift.apply(obj1, obj2);
+        eq(obj1.length, 6);
+        eq(length, 6);
+    },
+    'Add a length property to an empty object literal.': function(){
+        var emptyObj = {}
+        var length = unshift.call(emptyObj);
+        eq(emptyObj.length, 0);
+        eq(length, 0);
+    },
+
+    'If the length property is a number written in string form i.e. length:\"2\", length:\"99\" convert to number.':function(){
+        var objStringLength = {length:"3"}
+        var length = unshift.call(objStringLength);
+        eq(objStringLength.length, 3);
+        eq(length, 3);
+    },
+    'If the length property is any string  i.e. length:\"dog\", length:\"x\",length:\"red\" replace string with length of zero.':function(){
+        var objStringLength = {length:"this string will be replaced with a length of 0"};
+        var length = unshift.call(objStringLength);
+        eq(objStringLength.length, 0);
+        eq(length, 0);
+    },
+    'If the objects length property is a decimal point number convert to whole number. ': function(){
+        var decimalPointObject = {length:2.34572};
+        var number = unshift.call(decimalPointObject);
+        eq(decimalPointObject.length, 2);
+        eq(number,2);
+    },
+    'If the object is initialised with N elements, the objects length will be N.':function(){
+        var arr = {};
+        var numOfElements =  unshift.call(arr,[],1,undefined,null, "");
+        eq(numOfElements, 5);
+        eq(arr.length, 5);
+        eq(JSON.stringify(arr), JSON.stringify( {0: Array(0), 1: 1, 2: undefined, 3: null, 4: "", length: 5}   ));
+    },
+    'If the length property of the object is a negative number, the length should be set to zero by default.':function(){
+        var arr = {length:-5};
+        var length = unshift.call(arr);
+        eq(arr.length, 0);
+        eq(length, 0);
+    },
+    'If the length property of the object is a negative number string, the length should be set to zero by default.':function(){
+        var arr = {length:"-5"};
+        var length = unshift.call(arr);
+        eq(arr.length, 0);
+        eq(length, 0);
+    }
+});
+
+</script>

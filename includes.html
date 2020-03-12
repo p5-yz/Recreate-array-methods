@@ -1,0 +1,91 @@
+<script src="../tinytest.js"></script>
+<script>
+
+function includes(arr, valueToFind, fromIndex){
+    var index;
+
+    if (arguments.length < 3){
+        // Start search at index 0 if no 3rd argument
+        index = 0;
+    } else {
+        index = Number(fromIndex);
+        if (index < 0)  {
+            index = (index + arr.length < 0) ? 0 : index + arr.length;
+        } 
+    }
+
+    for (var i = index; i < arr.length; i++){ 
+        if (Object.is(arr[i], valueToFind) || arr[i] === valueToFind) {
+            if (i in arr) {
+                return true;
+            }
+        } 
+    }
+    return false;
+}
+
+// Parameters:
+//  includes(arr, valueToFind [, fromIndex])
+tests({
+      'It should return true if the valueToFind is in the array. ':function(){
+        var indexZero = includes([1,2,3,4], 1);
+        var indexOne = includes([1,2,3,4], 2);
+        var indexTwo = includes([1,2,3,4], 3);
+        var indexThree = includes([1,2,3,4], 4);
+
+        eq(indexZero, true);
+        eq(indexOne, true);
+        eq(indexTwo, true);
+        eq(indexThree, true);
+      },
+      'It should return false if valueToFind is not in array.':function(){
+      var notFound = includes([1,2,3,4], 10);
+
+      eq(notFound, false);
+      }, 
+      'It should return true if fromIndex position is less than or equal to valueToFind index . ':function(){
+        var indexThree = includes([1,2,3,4,5], 3 ,-5);
+        var indexTwo = includes([1,2,3,4,5], 3, -4);
+        var indexOne = includes([1,2,3,4,5], 3, -3);
+        eq(indexThree, true);
+        eq(indexTwo, true);
+        eq(indexOne, true);
+      },
+      'It should return false if fromIndex position is greater than valueToFind index . ':function(){
+        var indexZero = includes([1,2,3,4,5], 3, -1);
+        var indexOne = includes([1,2,3,4,5], 3, -2);
+
+        eq(indexZero, false);  
+        eq(indexOne, false );
+      },
+    'It should return false if array defined only.':function(){
+         var index = includes([1,2,3,4])    
+
+         eq(index, false);
+    },
+    'It should be strict equal.' : function(){
+       var strictEqual = includes(["1"], "1");
+       var notStrictEqual = includes(["1"], 1);
+
+       eq(strictEqual, true);
+       eq(notStrictEqual, false);
+    },
+      'It should skip holes in array': function() {
+      var array = [,,,];
+      var index = includes(array, undefined);
+
+      eq(false, index);
+    },
+    'It should return false if positive fromIndex exceeds maximum array index.':function(){
+      var found = includes([1,2,3,4], 4, 40);
+
+      eq(found, false);
+    },
+    'It should return true if valueToFind in array and negative fromIndex exceeds maximum array index.':function(){
+      var notFound = includes([1,2,3,4], 4, -40);
+
+      eq(notFound, true);
+    }
+ });
+
+</script>

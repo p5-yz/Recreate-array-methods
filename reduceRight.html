@@ -1,0 +1,236 @@
+<script src="../tinytest.js"></script>
+<script>
+// Prototype implementation:
+//
+//  function reduceRight(array, callback, initialValue){
+//     var index, accumulator;
+//    // No initialValue
+//     if (arguments.length < 3){  
+//         //  If array is empty, and no initialValue, throw TypeError.                                                                     
+//         if (Array.isArray(array) && (Object.keys(array).length == 0)){                                 
+//             throw new TypeError('TypeError: reduce of empty array with no initial value');
+//         }  
+//         //If array has only one element, return single value without calling callback. 
+//         if (Object.keys(array).length == 1) {                                                          
+//             return array[ Object.keys(array)[0]];                                          
+//         }     
+//         //  If no initialValue, accumulator should equal to last value in array
+//         var lastIndex = Object.keys(array)[Object.keys(array).length - 1];                             
+//         accumulator = array[lastIndex];  
+//         //  If no initialValue, currentValue should equal to the second to last element in the array                                                            
+//         index = Object.keys(array)[Object.keys(array).length - 2]; 
+//     } else {
+//         //  If initialVaue, accumulator should equal initialValue
+//         accumulator = initialValue;   
+//         //  If initialValue, currentValue should equal to last value in array                                                                  
+//         index =  Object.keys(array)[Object.keys(array).length - 1];;                                                                                                          
+//     }
+//     while ( index >= 0){
+//         if (index in array){   // Skip holes  
+//             accumulator  = callback(accumulator, array[index], index, array);                           
+//         }
+//         index--;
+//     }
+//     return accumulator;
+// } 
+//
+// Function signature:
+//  reduceRight(array, (callback[accumulator, currentValue[, index[, array ]]) [, initalValue)])
+
+// Callback parameters:
+//  accumulator - The value previously return in the last call to callback or initialValue, is supplied
+//	currentValue - The current element being processed (array[i])
+//	index - index of current element
+//	array - The array reduceRight() was called on
+// 	initialValue - value to use as accumulator to the first call of the callback
+
+// Return value:
+// 	Value - results from the reduction
+
+// Description:
+//  reduceRight executes the callback function once for
+//  each element present in the array, excluding holes in the array
+//
+// Requirements:
+//
+//  If initialVaue, accumulator should equal initialValue
+//  If initialValue, currentValue should equal to last value in array
+//  If initialValue, callback should start at last index
+
+//  If no initialValue, accumulator should equal to last value in array
+//  If no initialValue, currentValue should equal to second to last element in the array
+//  If no initialValue, callback should start at the second to last element in the array
+//
+// Edge cases:
+//
+//  Execute callback function once for each element
+//  Exclude holes in array
+//  If array is empty, and no initialValue, throw TypeError.
+//  If array has only one element, return single value without calling callback.
+//
+// e.g,
+//
+//  reduceRight([/* holes */, 1], function(){})
+//  return 1 without calling callback.
+
+//  reduceRight([1], function(){})
+//  return 1 without calling callback.
+
+//  reduceRight([], function(){}, 0)
+//  return 0 without calling callback
+
+//  reduceRight([/* hole */, /* hole */], function(){}, 0)
+//  return 0 without calling callback
+//
+// Function call:
+//
+//  reduceRight(['r','i','c','h','a','r','d'],function(accumulator, value){
+//      return accumulator + value;
+//  },'')
+
+function reduceRight(array, callback, initialValue){
+    var index, accumulator;
+    if (arguments.length < 3){  
+        if (Array.isArray(array) && (Object.keys(array).length == 0)){                                 
+            throw new TypeError('TypeError: reduce of empty array with no initial value');
+        }    
+        var lastIndex = Object.keys(array)[Object.keys(array).length - 1];                             
+        accumulator = array[lastIndex];  
+        index = Object.keys(array)[Object.keys(array).length - 2]; 
+    } else {
+        accumulator = initialValue;   
+        index =  Object.keys(array)[Object.keys(array).length - 1];;                                                                                                          
+    }
+    while ( index >= 0){
+        if (index in array){   // Skip holes  
+            accumulator  = callback(accumulator, array[index], index, array);                           
+        }
+        index--;
+    }
+    return accumulator;
+} 
+
+ tests({
+    'If initialValue, callback should run array.length times.': function() {
+        var numberOfTimesCallbackHasRun = 0;
+        reduceRight([1], function(){
+            numberOfTimesCallbackHasRun++;
+        }, 0);
+        eq(numberOfTimesCallbackHasRun, 1);
+    },
+     'If no initialValue, callback should run array.length - 1 times.': function() {
+        var numberOfTimesCallbackHasRun = 0;
+        reduceRight([1], function(){
+            numberOfTimesCallbackHasRun++;
+        });
+        eq(numberOfTimesCallbackHasRun, 0);
+    },
+    'If no initialValue, accumulator should start with initialValue.':function(){
+        reduceRight([1], function(previousValue) {
+         eq(previousValue, 0);
+     })
+    },
+    'If initialValue, currentValue should start at last value in array.':function(){
+        var numberOfTimesCallbackHasRun = 0;
+        var array = [];
+        reduceRight([1,2,3,4], function(accumulator, currentValue) {
+            array.push(currentValue)    
+     },0)
+     eq(array[0], 4); 
+    },
+    'If initialValue, callback will start at index 0;':function(){
+        reduceRight([1], function(previousValue, currentValue, currentIndex) {
+         eq(currentIndex, 0);
+     }, 0)
+    },
+    'If no initialValue, accumulator should equal to last value in array.':function(){
+        reduceRight([1, 2], function(accumulator) {
+         eq(accumulator, 2);
+     })
+    },
+    ' If no initialValue, currentValue should equal to second to last element in the array.':function(){
+        reduceRight([1, 2], function(previousValue, currentValue) {
+         eq(currentValue, 1);
+     })
+    },
+    'If no initialValue, callback will start at index 0.':function(){
+        reduceRight([1, 2], function(previous, currentValue, currentIndex) {
+         eq(currentIndex, 0);
+     })
+    },
+    'If initialValue, and array is empty, it should return that element without calling callback.':function(){
+      var numberOfTimesCallbackHasRun = 0;
+      var initialValue = 0;
+      var reduceResult = reduceRight([,,], function(previous, currentValue, currentIndex) {
+          numberOfTimesCallbackHasRun++;
+      },initialValue);
+      eq(reduceResult, initialValue);
+      eq(numberOfTimesCallbackHasRun, 0);
+    },
+    'If no initialValue, and array has one element, it should return only element without calling callback. ':function(){
+      var numberOfTimesCallbackHasRun = 0;
+      var reduceResult = reduceRight([1], function(previous, currentValue, currentIndex) {
+          numberOfTimesCallbackHasRun++;
+      });
+      eq(reduceResult, 1);
+      eq(numberOfTimesCallbackHasRun, 0);
+    },
+
+    'It should actually reduce.':function(){
+     var sum =
+     reduceRight([1,2,3], function(a, b) {
+         return a + b;
+     }, 0)
+     eq(sum, 6);
+     
+    },
+    'If initialValue, it should exclude holes.':function(){
+      var sum =
+      reduceRight([,1,,,2,3,,4], function(a, b) {
+         return a + b;
+     }, 1)
+     // eq(sum, 6);
+     eq(sum, 11);
+    },
+     'If no initialValue, it should exclude holes.':function(){
+      var sum =
+      reduceRight([,1,,,2,3,,4], function(a, b) {
+         return a + b;
+     })
+     eq(sum, 10);
+    },
+    //////////////////// Four tests for returning value without calling callback./////
+    'If array has only one element, return single value without calling callback (one item in array).':function(){
+        var value = reduceRight([1], function(){});
+        eq(value, 1 )  
+    },
+    'If array has only one element, return single value without calling callback (one item in array with hole).':function(){
+        var value = reduceRight([,1], function(){});
+        eq(value, 1 )  
+    },'If array has zero elements, return single value without calling callback (empty array and initial value).':function(){
+        var value = reduceRight([], function(){}, 0);
+        eq(value, 0 )  
+    },'If array has zero elements, return single value without calling callback. (empty array with 2 holes and initial value).':function(){
+        var value = reduceRight([,,], function(){},1);
+        eq(value, 1 )  
+        
+    },
+    //////////////////////////////////////////////////////////////////////////////////
+    'If array is empty, and no initialValue, throw TypeError.':function(){
+      var isTypeError = false;
+      try {
+        reduceRight([], function(){});
+      } catch(e) {
+        var isTypeError = (e instanceof TypeError);
+      }
+      eq(isTypeError, true);
+    },
+    'It should pass array as fourth argument to callback.':function(){
+     var testArray =  [1, 2];
+     reduceRight(testArray, function(accumulator, currentValue, currentIndex, arrayReduce) {
+         eq(arrayReduce, testArray);
+     })
+    }
+});
+
+</script>

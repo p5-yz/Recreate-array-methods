@@ -1,0 +1,50 @@
+<script src="../tinytest.js">
+</script>
+<script>
+// Prototype implementation:
+function some(array, callback){
+ 	var  i = 0, returnValue;	
+	while(((returnValue = callback(array[i], i, array)) != true) && (i <array.length-1)) {
+ 		i++;
+    }
+ 	return returnValue;
+};
+
+
+// some(array, callback[, thisArg])
+
+// callback parameters:
+//		currentValue - The current element being processed (array[i])
+//		index - index of current element
+//		array - The array some() was called on
+// 		thisArg - value to use as this
+
+// Return value:
+// 		Boolean - for truthy values and false (falsey otherwise)
+
+// Description:
+// 	some() executes callback once on each element in the array,
+//  in ascending order, until it finds an element
+//	returns true else return false
+
+
+// If element exists invoke callback and returns true
+// If element does not exist do not invoke callback and returns false
+
+// If thisArg is provided, it will be used as callbacks' this value
+// If thisArg is not provided, undefined will be used instead
+
+// some() does not mutate the array.
+
+// The range of elements are set before first invocation of callback.
+
+// Edge cases:
+//	If callback is not a callable, throw TypeError
+//		e.g. some([], IsCallable(callback)) ===> TypeError
+// 	If Element are appended to array after the call to some() will not be visited by the callback
+// 	If existing unvisited element is changed be a callback, 
+// 			some() will be value of the changed element when callback visits index.
+//	If Elements is deleted elements are not visited.
+//	If empty array, callback return false	
+
+</script>

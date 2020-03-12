@@ -1,0 +1,167 @@
+<script src="../tinytest.js">
+</script>
+<script>
+// Prototype implementation:
+function find(array, callback, optionalThisObject){
+    var optionalThisObject;
+    var length;
+    var found;
+    
+    length = array.length;
+    optionalCallback = callback 
+	if (optionalThisObject != null){
+		optionalCallback = callback.bind(optionalThisObject);
+    }
+    
+    if (Array.isArray(array) && array.length) {
+        for (var i = 0; i < length; i++){
+            found = optionalCallback(array[i], i, array)   
+            if (found){ 
+                return array[i];
+            }        
+        }
+    }    
+    return;
+}
+
+// Function signature:
+// find(array, callback[, thisArg])
+
+// Callback parameters:
+//	currentValue - The current element being processed (array[i])
+//	index - index of current element
+//	array - The array find() was called on
+// 	thisArg - value to use as this
+
+// Return value:
+// 	The first element in the array that satisfies the provided testing function - integer
+
+// Description:
+// The find method executes the callback function once for each index of
+// the array until it finds one where callback returns a true value.
+// If such element is found, find immediately returns the value of
+// that element.
+
+tests({
+		'It should run the callback function array.length times.': function() {
+            var numberOfTimesCallbackHasRun = 0;
+            find([1, 2, 3], function() {
+                numberOfTimesCallbackHasRun++;
+            });
+            eq(numberOfTimesCallbackHasRun, 3);
+        },
+        'It should pass in the ith element as the first argument to the callback.': function() {
+            find([1], function(number) {
+                eq(number, 1);
+            });
+        },
+        'It should pass in the ith position as the second argument to the callback.': function() {
+            find([1], function(number, index) {
+                eq(index, 0);
+            });
+        },
+        'It should pass in the original array as the third argument to the callback.': function() {
+            var textArray = [1, 2, 3];
+            find(textArray, function(number, index, originalArray) {
+                eq(originalArray, textArray);
+            });
+        },
+        'It should accept an optional this object': function() {
+			find([1], function() {
+                eq(this.description, 'I should be accessible inside of the callback.')
+            }, {
+                description: 'I should be accessible inside of the callback.'
+            });
+        },
+        // 'The range of elements are set before first invocation of callback. (see test one below)': function(){
+        //     fail()
+        // },
+        'If Element are appended to array after the call to find(), elements will not be visited by the callback': function(){
+            var numberOfTimesCallbackHasRun = 0;
+            var testArray = [1,2]
+            var nonskippedindex = true;
+            find(testArray, function(elem, index, array){
+                if (index in array && nonskippedindex){
+                    nonskippedindex = false;
+                    array.push(3,4);
+                }
+                numberOfTimesCallbackHasRun++;
+            });
+            eq(numberOfTimesCallbackHasRun, 2)
+            eq(testArray.length, 4 )
+        },
+        'If element is found find() immediately return element': function(){
+            var index;
+             var found =
+            find([1,2], function(elem, i){
+                index = i
+                return elem < 2;
+            })
+            eq (found, 1)
+            eq (index, 0)
+        },
+        'If element is not found find() return undefined': function(){
+             var found =
+            find([4], function(elem){
+                return elem > 5;
+            })
+            eq(found, undefined);
+        },
+        'If empty array, callback return undefined'	:function(){
+            var emptyArray = [];
+            var found =
+            find(emptyArray, function(){});
+            eq(found, undefined );
+        },
+        'If existing unvisited element is changed by a callback, find() will be value of the changed element when callback visits index.':function(){
+            var changed = true;
+            var testArray = [1,1,1];
+            var compareArray = [2,2,4];
+                find(testArray, function(elem, index, array){
+                    if (changed){
+                        array[2] = 2;
+                        changed = false;
+                    }
+                    array[index] = elem*2;
+                });
+                eq(testArray.toString(), compareArray.toString())
+        },
+        'It should visit all elements including deleted elements.':function(){ 
+            var numberOfTimesCallbackHasRun = 0;                                                   
+            var deleted = true;
+            var testArray = [1,1,1,4,2,6];
+                find(testArray, function(elem, index, array){
+                    if (deleted) {
+                        delete array[1];                             
+                        delete array[3];
+                        delete array[5];
+
+                        array.splice(4,1) // Please note. Index 4, element 2 is completely removed so the arrays
+                                          // length is now 5. So the array structure should be as followed:
+                                          //
+                                          // e.g,  [1, /* hole 1 */, 1, /* hole 2 */, /* hole 3 */]  
+
+                    deleted = false;
+                   }
+                   numberOfTimesCallbackHasRun++; 
+                });
+                eq(testArray.length, 5);
+                eq(numberOfTimesCallbackHasRun, 6);
+        },
+        'find() does not mutate the array.':function(){
+            var testArray = function(){
+                return [1,2,3];
+            }
+            var isMutateableArray = testArray();
+            var testMutatableArray = testArray();
+
+            find(isMutateableArray, function(){})
+            eq(isMutateableArray.toString(), testMutatableArray.toString());
+        },
+        'If no optional this passed in default is undefined .': function() { // NOTE: I MAY REMOVE THIS AS A TEST BECAUSE THE 'THIS' OBJECT, WITHIN A FUNCTION DEFAULTS TO THE WINDOWS OBJECT.
+            find([], function() {
+                eq(this, undefined);
+            })
+        },
+	});
+</script>
